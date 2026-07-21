@@ -1,0 +1,233 @@
+Since you're targeting product-based companies (LSEG, Grafana Labs, CrowdStrike, Warner Bros. Discovery, etc.) with 7 years of DevOps/SRE experience, interviewers won't just ask how to deploy an application. They'll expect you to understand how Kubernetes works internally.
+
+Here's the order I'd recommend learning.
+
+Week 1 – Kubernetes Architecture (Must Know)
+Topics
+Control Plane components
+API Server
+etcd
+Scheduler
+Controller Manager
+Cloud Controller Manager
+Worker Node
+kubelet
+kube-proxy
+Container Runtime (containerd)
+How kubectl works internally
+API request flow
+Interview Questions
+Explain Kubernetes architecture.
+What happens when you run kubectl apply?
+Why is the API Server the heart of Kubernetes?
+Why does Kubernetes use etcd?
+How does kubelet communicate with the API server?
+What happens if Scheduler goes down?
+What if API Server goes down?
+Can Pods run if Control Plane is unavailable?
+Week 2 – Pod Internals
+Learn
+Pod lifecycle
+Init Containers
+Sidecar Containers
+Pause Container
+PID Namespace
+Network Namespace
+Volume Mount process
+Restart Policies
+Questions
+Why does Kubernetes use a Pause Container?
+Can two containers communicate using localhost?
+Difference between Pod and Container?
+What happens when a Pod dies?
+Why are Pods ephemeral?
+Difference between Init and Sidecar containers?
+Week 3 – Scheduling
+Learn
+Scheduler workflow
+Node Selection
+Taints
+Tolerations
+Node Affinity
+Pod Affinity
+Pod Anti Affinity
+Topology Spread Constraints
+Priority Classes
+Preemption
+Questions
+How does Scheduler select a node?
+Difference between Node Selector and Node Affinity.
+Explain Taints and Tolerations.
+What happens if no node matches?
+What is Preemption?
+Week 4 – Networking (Very Important)
+Learn
+Kubernetes Network Model
+CNI
+Pod IP
+Service IP
+ClusterIP
+NodePort
+LoadBalancer
+Ingress
+DNS
+CoreDNS
+kube-proxy
+iptables
+IPVS
+eBPF basics
+Questions
+Why does every Pod have its own IP?
+How does Pod-to-Pod communication happen?
+What is kube-proxy?
+Difference between iptables and IPVS?
+How does DNS work?
+What happens when a Pod accesses a Service?
+Week 5 – Storage
+Learn
+Persistent Volume
+Persistent Volume Claim
+Storage Class
+CSI
+Dynamic Provisioning
+Volume Attach Process
+Questions
+Explain PV and PVC.
+What is CSI?
+How does Dynamic Provisioning work?
+Difference between hostPath and PVC.
+Week 6 – Workloads
+Learn
+Deployment
+ReplicaSet
+StatefulSet
+DaemonSet
+Job
+CronJob
+Questions
+Difference between Deployment and StatefulSet.
+Why StatefulSet?
+When do you use DaemonSet?
+Difference between Job and CronJob.
+Week 7 – Security
+Learn
+Authentication
+Authorization
+RBAC
+Service Accounts
+Secrets
+ConfigMaps
+Network Policies
+Pod Security Standards
+Admission Controllers
+Questions
+Difference between User and Service Account.
+Explain RBAC.
+How does Kubernetes authenticate users?
+Why Network Policies?
+Week 8 – Scaling
+Learn
+HPA
+VPA
+Cluster Autoscaler
+Metrics Server
+Questions
+Difference between HPA and Cluster Autoscaler.
+How does HPA calculate replicas?
+Why is Metrics Server required?
+Week 9 – Reliability
+Learn
+Liveness Probe
+Readiness Probe
+Startup Probe
+PDB
+Eviction
+Node Drain
+Graceful Shutdown
+Questions
+Difference between Liveness and Readiness.
+What happens during kubectl drain?
+Explain Pod Disruption Budget.
+Week 10 – Advanced Internals
+Learn
+Operators
+CRD
+Admission Webhooks
+Finalizers
+Owner References
+Informers
+Watches
+Reconciliation Loop
+Garbage Collection
+Questions
+What is a CRD?
+Explain Operator Pattern.
+What is a Finalizer?
+What are Informers?
+Why does Kubernetes use Watches instead of polling?
+Production Troubleshooting (Most Important)
+
+Expect scenario-based questions like:
+
+Pod is Pending. How do you troubleshoot?
+Pod is CrashLoopBackOff.
+ImagePullBackOff.
+OOMKilled.
+Node NotReady.
+Service is unreachable.
+DNS is not resolving.
+PVC stuck in Pending.
+High API Server latency.
+etcd is full.
+kubelet stopped.
+Scheduler not scheduling Pods.
+High CPU on kube-proxy.
+Rolling update stuck.
+Ingress returning 502.
+Pods restarting every few minutes.
+Commands You Should Know by Heart
+kubectl describe
+kubectl logs
+kubectl exec
+kubectl get events
+kubectl top
+kubectl explain
+kubectl rollout
+kubectl cordon
+kubectl drain
+kubectl uncordon
+kubectl debug
+kubectl api-resources
+kubectl api-versions
+Hands-on Labs (Essential)
+
+Set up a local cluster (such as Kubernetes in Docker Desktop, Minikube, or Kind) and practice:
+
+Build a multi-node cluster.
+Deploy applications with Deployments and Services.
+Break DNS and troubleshoot.
+Simulate Pod failures and recovery.
+Configure Ingress with TLS.
+Practice rolling updates and rollbacks.
+Install a CNI plugin (e.g., Calico or Cilium) and test Network Policies.
+Configure Persistent Volumes and StorageClasses.
+Implement RBAC with Service Accounts.
+Install Metrics Server and configure HPA.
+Deploy an Operator and a Custom Resource.
+Upgrade the cluster and troubleshoot common issues.
+What product-based companies focus on
+
+For companies like Grafana Labs, LSEG, CrowdStrike, Atlassian, Adobe, Microsoft, and Google, the most valuable areas are:
+
+Kubernetes architecture and control plane internals
+Scheduler internals
+Networking (CNI, kube-proxy, DNS, Services, Ingress)
+etcd concepts
+Controllers and reconciliation loops
+Security (RBAC, Service Accounts, Network Policies)
+Production troubleshooting
+Cluster upgrades and high availability
+Observability (Prometheus, Grafana, OpenTelemetry)
+Real production incidents and debugging
+
+Mastering these topics, along with hands-on troubleshooting, will prepare you well for senior DevOps, Platform Engineer, and SRE interviews in product-based companies.

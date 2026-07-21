@@ -1,0 +1,12 @@
+# Personal lab evidence can contain local names, addresses, and tokens.
+journal/
+
+# Never commit local TLS private material.
+*.key
+*.pem
+course.crt
+
+# Editor and operating-system noise.
+.DS_Store
+Thumbs.db
+.vscode/
