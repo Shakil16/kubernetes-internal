@@ -34,9 +34,9 @@ Access modes describe attachment/mount capability, not application-level write c
 
 ## Lab · Provision, write, recreate
 
-```powershell
+```console
 kubectl get storageclass -o wide
-kubectl apply -f labs/manifests/04-storage.yaml
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.storage.enabled=true
 kubectl get pvc,pv -n k8s-30d
 kubectl describe pvc course-data -n k8s-30d
 kubectl get pod storage-writer -n k8s-30d -o wide
@@ -45,19 +45,19 @@ kubectl exec storage-writer -n k8s-30d -- tail /data/history
 
 Record the claim UID, PV, StorageClass, node, and CSI driver:
 
-```powershell
+```console
 kubectl get pvc course-data -n k8s-30d -o yaml
-$pv = kubectl get pvc course-data -n k8s-30d -o jsonpath='{.spec.volumeName}'
-kubectl get pv $pv -o yaml
+kubectl get pvc course-data -n k8s-30d -o custom-columns=CLAIM:.metadata.name,VOLUME:.spec.volumeName
+kubectl get pv <volume-name> -o yaml
 kubectl get csidriver
 kubectl get volumeattachment
 ```
 
 Delete and recreate only the Pod, not the PVC. Confirm history remains:
 
-```powershell
+```console
 kubectl delete pod storage-writer -n k8s-30d
-kubectl apply -f labs/manifests/04-storage.yaml
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.storage.enabled=true
 kubectl wait pod/storage-writer -n k8s-30d --for=condition=Ready --timeout=120s
 kubectl exec storage-writer -n k8s-30d -- tail /data/history
 ```
@@ -66,15 +66,15 @@ kubectl exec storage-writer -n k8s-30d -- tail /data/history
 
 Inspect in this order:
 
-```powershell
+```console
 kubectl describe pvc <claim> -n k8s-30d
 kubectl get storageclass -o yaml
 kubectl get events -n k8s-30d --sort-by='.metadata.creationTimestamp'
-kubectl get pods -A | Select-String -Pattern 'csi|provision'
+kubectl get pods -A
 kubectl get csinode,csidriver
 ```
 
-No default class, wrong class name, incompatible access/volume mode, unavailable capacity, provisioner failure, and `WaitForFirstConsumer` without a consuming Pod are distinct causes.
+Inspect the all-namespace Pod list for CSI and provisioner components. No default class, wrong class name, incompatible access/volume mode, unavailable capacity, provisioner failure, and `WaitForFirstConsumer` without a consuming Pod are distinct causes.
 
 ## Production issues
 
@@ -91,4 +91,3 @@ No default class, wrong class name, incompatible access/volume mode, unavailable
 3. **What is CSI?** A vendor-neutral RPC specification separating storage plugins into controller and node capabilities.
 4. **hostPath versus PVC?** `hostPath` couples data and security to one node; PVC abstracts managed storage and lifecycle. `hostPath` is mainly for controlled local/system use.
 5. **Why WaitForFirstConsumer?** It prevents provisioning in a topology incompatible with the eventual scheduled Pod.
-

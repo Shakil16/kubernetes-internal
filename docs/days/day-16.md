@@ -29,8 +29,8 @@ Capacity must accommodate surge requests, anti-affinity, topology, quotas, and v
 
 ## Lab · Follow a revision
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl rollout status deployment/web -n k8s-30d
 kubectl rollout history deployment/web -n k8s-30d
 kubectl get replicaset -n k8s-30d -l app=web
@@ -41,7 +41,7 @@ kubectl rollout history deployment/web -n k8s-30d
 
 Pause and batch changes into one rollout:
 
-```powershell
+```console
 kubectl rollout pause deployment/web -n k8s-30d
 kubectl set env deployment/web -n k8s-30d FEATURE_X=true
 kubectl set resources deployment/web -n k8s-30d --requests=cpu=30m,memory=40Mi
@@ -51,7 +51,7 @@ kubectl rollout status deployment/web -n k8s-30d
 
 ## Break/fix · Stuck rollout
 
-```powershell
+```console
 kubectl set image deployment/web -n k8s-30d nginx=invalid.example.invalid/nginx:nope
 kubectl rollout status deployment/web -n k8s-30d --timeout=45s
 kubectl get deployment,replicaset,pod -n k8s-30d -l app=web
@@ -77,4 +77,3 @@ Check that old ready Pods remained because `maxUnavailable: 0`. This is availabi
 2. **What makes a rollout safe?** Correct readiness, graceful termination, resource capacity, disruption math, backward compatibility, observability, and rollback criteria.
 3. **Does progress deadline roll back automatically?** No; it marks failure. Automation or an operator must choose rollback.
 4. **Why can maxUnavailable zero deadlock?** Every old Pod must remain while a surge Pod schedules and becomes available; without capacity, no transition is possible.
-

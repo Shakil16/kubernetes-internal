@@ -18,8 +18,8 @@ Always test from the same network identity and namespace as the affected caller.
 
 ## Baseline
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl run net-client -n k8s-30d --image=nicolaka/netshoot --restart=Never -- sleep 1d
 kubectl exec net-client -n k8s-30d -- dig +short web.k8s-30d.svc.cluster.local
 kubectl exec net-client -n k8s-30d -- curl -sS http://web
@@ -28,7 +28,7 @@ kubectl get service,endpointslice,pod -n k8s-30d -o wide
 
 ## Incident A · Service selector
 
-```powershell
+```console
 kubectl patch service web -n k8s-30d --type=merge -p '{"spec":{"selector":{"app":"wrong"}}}'
 kubectl exec net-client -n k8s-30d -- curl --connect-timeout 2 http://web
 kubectl get service web -n k8s-30d -o yaml
@@ -37,26 +37,26 @@ kubectl get endpointslice -n k8s-30d -l kubernetes.io/service-name=web -o yaml
 
 Repair and verify endpoint population before retesting traffic:
 
-```powershell
+```console
 kubectl patch service web -n k8s-30d --type=merge -p '{"spec":{"selector":{"app":"web"}}}'
 kubectl get endpointslice -n k8s-30d -l kubernetes.io/service-name=web -w
 ```
 
 ## Incident B · NetworkPolicy
 
-```powershell
-kubectl apply -f labs/manifests/07-security.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.security.enabled=true
 kubectl exec net-client -n k8s-30d -- curl --connect-timeout 2 http://web
 kubectl label pod net-client -n k8s-30d access=web
 kubectl exec net-client -n k8s-30d -- curl --connect-timeout 2 http://web
-kubectl delete -f labs/manifests/07-security.yaml
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.security.enabled=false
 ```
 
 On a policy-enforcing CNI, the first call should fail and the labeled call succeed. Confirm CNI enforcement if behavior is unchanged.
 
 ## DNS runbook
 
-```powershell
+```console
 kubectl exec net-client -n k8s-30d -- cat /etc/resolv.conf
 kubectl exec net-client -n k8s-30d -- dig web.k8s-30d.svc.cluster.local
 kubectl exec net-client -n k8s-30d -- dig example.com
@@ -94,4 +94,3 @@ Classify cluster-zone-only, upstream-only, one-Pod/one-node, or global failure. 
 3. Why can NetworkPolicy YAML be correct but unenforced?
 4. What commonly causes Ingress 502 versus 404?
 5. How would an MTU mismatch present?
-

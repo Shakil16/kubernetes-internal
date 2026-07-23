@@ -30,8 +30,8 @@ Use RED (rate, errors, duration) for request-serving services and USE (utilizati
 
 ## Lab A · Native signals
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl top nodes
 kubectl top pods -n k8s-30d
 kubectl logs -n k8s-30d -l app=web --all-containers --prefix --tail=50
@@ -46,7 +46,7 @@ API `/metrics` may be forbidden on managed clusters; that is a valid RBAC bounda
 
 On a disposable cluster with enough memory and internet access:
 
-```powershell
+```console
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
@@ -83,4 +83,3 @@ Follow a hypothesis tree:
 3. **Why not rely on Kubernetes Events?** They are namespaced, aggregated/limited, and short-retention operational hints, not durable logs/audit.
 4. **What does OpenTelemetry add?** Vendor-neutral APIs/SDKs and collector pipelines for traces, metrics, and logs with consistent context propagation.
 5. **How do you alert well?** Page on actionable user-impact or fast SLO burn; route lower urgency; include ownership, evidence, and runbook.
-

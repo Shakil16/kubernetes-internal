@@ -19,18 +19,15 @@ flowchart LR
 
 On a disposable cluster:
 
-```powershell
-./labs/Initialize-Lab.ps1
-kubectl apply -f labs/manifests/01-web.yaml
-kubectl apply -f labs/manifests/06-rbac.yaml
-kubectl apply -f labs/manifests/08-scaling-reliability.yaml
+```console
+helm upgrade --install k8s-30d labs/kubernetes-internals --namespace default --set labs.web.enabled=true --set labs.rbac.enabled=true --set labs.scalingReliability.enabled=true
 kubectl get deployment,service,pod,hpa,pdb -n k8s-30d
 kubectl rollout status deployment/web -n k8s-30d
 ```
 
 Produce a baseline transcript:
 
-```powershell
+```console
 kubectl get pod -n k8s-30d -o wide
 kubectl get endpointslice -n k8s-30d
 kubectl top pod -n k8s-30d
@@ -45,7 +42,7 @@ Draw the actual path from client to Pod, including your CNI/service implementati
 
 Have another person choose one injection, or choose a number randomly and reveal only the command:
 
-```powershell
+```console
 # 1: Service has no endpoints
 kubectl patch service web -n k8s-30d --type=merge -p '{"spec":{"selector":{"app":"wrong"}}}'
 
@@ -69,8 +66,8 @@ Rules:
 
 The universal reset is:
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl rollout status deployment/web -n k8s-30d --timeout=2m
 kubectl exec capstone-client -n k8s-30d -- curl -sS http://web
 ```
@@ -126,4 +123,3 @@ Avoid “human error” as a root cause. Ask why one action could bypass validat
 - Explain one real production incident with evidence and tradeoffs.
 - Answer at least 40 questions in the [interview bank](../reference/interview-bank.md) aloud.
 - Repeat the capstone after one week; target faster diagnosis with fewer commands.
-

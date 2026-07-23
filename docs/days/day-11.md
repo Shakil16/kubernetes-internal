@@ -23,23 +23,25 @@ Pod IPs are ephemeral. Applications discover stable backends through Services/DN
 
 ## Lab · Trace Pod-to-Pod
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl run netshoot -n k8s-30d --image=nicolaka/netshoot --restart=Never -- sleep 1d
 kubectl get pod -n k8s-30d -o custom-columns=NAME:.metadata.name,NODE:.spec.nodeName,IP:.status.podIP
-$target = kubectl get pod -n k8s-30d -l app=web -o jsonpath='{.items[0].status.podIP}'
+kubectl get pod -n k8s-30d -l app=web -o custom-columns=NAME:.metadata.name,IP:.status.podIP
 kubectl exec -n k8s-30d netshoot -- ip addr
 kubectl exec -n k8s-30d netshoot -- ip route
-kubectl exec -n k8s-30d netshoot -- curl -sS --connect-timeout 2 http://$target
-kubectl exec -n k8s-30d netshoot -- tracepath $target
+kubectl exec -n k8s-30d netshoot -- curl -sS --connect-timeout 2 http://<web-pod-ip>
+kubectl exec -n k8s-30d netshoot -- tracepath <web-pod-ip>
 ```
+
+Replace `<web-pod-ip>` with an IP printed by the preceding `kubectl get pod` command.
 
 Inspect the installed CNI and node agent:
 
-```powershell
+```console
 kubectl get daemonset -A
 kubectl get pods -n kube-system -o wide
-kubectl get node -o jsonpath='{range .items[*]}{.metadata.name}{" podCIDR="}{.spec.podCIDR}{"`n"}{end}'
+kubectl get node -o jsonpath='{range .items[*]}{.metadata.name}{" podCIDR="}{.spec.podCIDR}{"\n"}{end}'
 ```
 
 On a disposable node debug shell, compare host interfaces/routes with the Pod view. Names and commands depend on the CNI; document what you actually observe rather than forcing the generic diagram onto it.
@@ -48,7 +50,7 @@ On a disposable node debug shell, compare host interfaces/routes with the Pod vi
 
 A Pod stuck in `ContainerCreating` with `FailedCreatePodSandBox` has not reached application startup. Check:
 
-```powershell
+```console
 kubectl describe pod <pod> -n k8s-30d
 kubectl get pods -n kube-system -o wide
 kubectl logs -n kube-system <cni-node-pod> --all-containers --tail=200
@@ -71,4 +73,3 @@ Common causes: exhausted IP pool, missing CNI config/binary, agent not ready, MT
 2. **How does cross-node communication happen?** Through CNI-programmed routes, overlays, cloud networking, or eBPF datapaths; explain one implementation and state that it varies.
 3. **What is CNI?** The runtime-facing plugin contract for adding/removing network attachments, not itself a single networking product.
 4. **Why not depend on Pod IPs?** Pod instances and IPs are replaceable; use Services, headless discovery, or controller-managed identity.
-

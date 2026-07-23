@@ -27,8 +27,8 @@ Admission controllers run after authorization and can mutate or validate request
 
 ## Lab · Secure a workload
 
-```powershell
-kubectl apply -f labs/manifests/07-security.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.security.enabled=true
 kubectl get pod restricted-web -n k8s-30d -o yaml
 kubectl exec restricted-web -n k8s-30d -- id
 kubectl exec restricted-web -n k8s-30d -- sh -c 'touch /should-fail'
@@ -38,7 +38,7 @@ kubectl get namespace k8s-30d --show-labels
 
 Create and inspect a Secret without printing it in shared output:
 
-```powershell
+```console
 kubectl create secret generic demo-credential -n k8s-30d --from-literal=username=course --from-literal=password='local-only'
 kubectl describe secret demo-credential -n k8s-30d
 kubectl auth can-i get secrets -n k8s-30d --as=system:serviceaccount:k8s-30d:pod-reader
@@ -47,7 +47,7 @@ kubectl delete secret demo-credential -n k8s-30d
 
 Test enforcement in an isolated namespace:
 
-```powershell
+```console
 kubectl create namespace pss-test
 kubectl label namespace pss-test pod-security.kubernetes.io/enforce=restricted
 kubectl run root-test -n pss-test --image=nginx:1.27-alpine

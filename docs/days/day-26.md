@@ -2,7 +2,7 @@
 
 ## Outcome
 
-Diagnose four common Pod failures from status, events, logs, and node evidence without reading the deliberately broken manifest first.
+Diagnose four common Pod failures from status, events, logs, and node evidence without reading the deliberately broken chart template first.
 
 ```mermaid
 flowchart TB
@@ -19,16 +19,16 @@ flowchart TB
 
 ## Lab setup
 
-```powershell
-kubectl apply -f labs/manifests/09-failures.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.failures.enabled=true
 kubectl get pod -n k8s-30d -l failure -w
 ```
 
-Wait several minutes for the OOM and backoff states. Do not open `09-failures.yaml` until you record a hypothesis for each Pod.
+Wait several minutes for the OOM and backoff states. Do not open `labs/kubernetes-internals/templates/failures.yaml` until you record a hypothesis for each Pod.
 
 ## Incident 1 · Pending
 
-```powershell
+```console
 kubectl get pod failure-pending -n k8s-30d -o wide
 kubectl get pod failure-pending -n k8s-30d -o jsonpath='{.status.conditions[*].message}'
 kubectl describe pod failure-pending -n k8s-30d
@@ -38,17 +38,17 @@ kubectl get events -n k8s-30d --field-selector involvedObject.name=failure-pendi
 
 Repair this lab by satisfying the deliberate selector, then remove the temporary label after deleting the Pod:
 
-```powershell
-$node = kubectl get node -o jsonpath='{.items[0].metadata.name}'
-kubectl label node $node course.example.com/nonexistent=true
+```console
+kubectl get nodes
+kubectl label node <node-name> course.example.com/nonexistent=true
 kubectl get pod failure-pending -n k8s-30d -w
 kubectl delete pod failure-pending -n k8s-30d
-kubectl label node $node course.example.com/nonexistent-
+kubectl label node <node-name> course.example.com/nonexistent-
 ```
 
 ## Incident 2 · CrashLoopBackOff
 
-```powershell
+```console
 kubectl get pod failure-crashloop -n k8s-30d -o jsonpath='{.status.containerStatuses[0].lastState.terminated}'
 kubectl logs failure-crashloop -n k8s-30d
 kubectl logs failure-crashloop -n k8s-30d --previous
@@ -57,23 +57,23 @@ kubectl describe pod failure-crashloop -n k8s-30d
 
 The exit code/message proves an application/configuration failure. In a controller-managed workload, correct the template and roll out. This standalone Pod's command is immutable, so recreate a corrected Pod:
 
-```powershell
+```console
 kubectl delete pod failure-crashloop -n k8s-30d
 kubectl run failure-crashloop -n k8s-30d --image=busybox:1.36.1 -- sleep 1d
 ```
 
 ## Incident 3 · ImagePullBackOff
 
-```powershell
+```console
 kubectl describe pod failure-imagepull -n k8s-30d
 kubectl get events -n k8s-30d --field-selector involvedObject.name=failure-imagepull
-kubectl get pod failure-imagepull -n k8s-30d -o jsonpath='{.spec.containers[0].image}{"`n"}'
+kubectl get pod failure-imagepull -n k8s-30d -o jsonpath='{.spec.containers[0].image}{"\n"}'
 kubectl get serviceaccount default -n k8s-30d -o yaml
 ```
 
 Classify exact failure: not found, unauthorized, DNS, TLS, rate limit, platform mismatch, or runtime connectivity. Repair the image reference:
 
-```powershell
+```console
 kubectl set image pod/failure-imagepull -n k8s-30d app=busybox:1.36.1
 kubectl get pod failure-imagepull -n k8s-30d -w
 ```
@@ -82,8 +82,8 @@ It may complete because BusyBox has no long-running default; that still proves t
 
 ## Incident 4 · OOMKilled
 
-```powershell
-kubectl get pod failure-oom -n k8s-30d -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}{" exit="}{.status.containerStatuses[0].lastState.terminated.exitCode}{"`n"}'
+```console
+kubectl get pod failure-oom -n k8s-30d -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}{" exit="}{.status.containerStatuses[0].lastState.terminated.exitCode}{"\n"}'
 kubectl describe pod failure-oom -n k8s-30d
 kubectl top pod failure-oom -n k8s-30d --containers
 kubectl describe node (kubectl get pod failure-oom -n k8s-30d -o jsonpath='{.spec.nodeName}')
@@ -106,4 +106,3 @@ Container OOM at its cgroup limit differs from node-level memory pressure/system
 3. How do `ErrImagePull` and `ImagePullBackOff` relate?
 4. How do you distinguish cgroup OOM from node memory pressure?
 5. A Pod restarts every five minutes—what evidence do you collect before changing it?
-

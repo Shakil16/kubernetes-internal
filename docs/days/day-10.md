@@ -24,8 +24,8 @@ PriorityClass influences scheduling order. If a high-priority Pod cannot fit, pr
 
 ## Lab · Observe placement
 
-```powershell
-kubectl apply -f labs/manifests/03-scheduling.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.scheduling.enabled=true
 kubectl get priorityclass k8s-30d-important
 kubectl get pod -n k8s-30d -l app=placement-demo -o custom-columns=NAME:.metadata.name,NODE:.spec.nodeName,PRIORITY:.spec.priority,PHASE:.status.phase
 kubectl get deployment placement-demo -n k8s-30d -o yaml
@@ -34,21 +34,21 @@ kubectl describe pod -n k8s-30d -l app=placement-demo
 
 Scale beyond the number of nodes. Because the rules are preferences and `ScheduleAnyway`, Pods should still schedule:
 
-```powershell
+```console
 kubectl scale deployment/placement-demo -n k8s-30d --replicas=8
 kubectl get pod -n k8s-30d -l app=placement-demo -o wide
 ```
 
 Now edit the Deployment and change anti-affinity from preferred to required or spread behavior to `DoNotSchedule`. Predict the Pending count before saving, then inspect scheduler events. Revert with:
 
-```powershell
-kubectl apply -f labs/manifests/03-scheduling.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.scheduling.enabled=true
 ```
 
 Clean the cluster-scoped PriorityClass after the day:
 
-```powershell
-kubectl delete -f labs/manifests/03-scheduling.yaml --ignore-not-found
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.scheduling.enabled=false
 ```
 
 ## Practical design exercises
@@ -71,4 +71,3 @@ kubectl delete -f labs/manifests/03-scheduling.yaml --ignore-not-found
 2. **What is preemption?** Scheduler-directed eviction of lower-priority Pods to create feasible capacity for an unschedulable higher-priority Pod.
 3. **Can PDB stop every eviction?** No. It governs voluntary disruptions through the eviction API and is not a universal shield against failures, direct deletes, or all preemption necessities.
 4. **How would you spread replicas across zones?** Label domains consistently, define topology spread/anti-affinity, decide hard versus soft behavior, and preserve spare capacity.
-

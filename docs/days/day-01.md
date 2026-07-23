@@ -30,7 +30,7 @@ Important distinctions:
 
 ## Lab · Discover the API
 
-```powershell
+```console
 kubectl config current-context
 kubectl cluster-info
 kubectl get nodes -o wide
@@ -44,8 +44,8 @@ kubectl get --raw /version
 
 Create the course namespace and a Pod imperatively, then inspect the stored object:
 
-```powershell
-kubectl apply -f labs/manifests/00-namespace.yaml
+```console
+helm upgrade --install k8s-30d labs/kubernetes-internals --namespace default
 kubectl run first-pod -n k8s-30d --image=nginx:1.27-alpine
 kubectl get pod first-pod -n k8s-30d -o yaml
 kubectl describe pod first-pod -n k8s-30d
@@ -58,7 +58,7 @@ In the YAML, find `metadata.uid`, `resourceVersion`, `spec.nodeName`, Pod IP, co
 
 Use an impossible node label:
 
-```powershell
+```console
 kubectl run misplaced -n k8s-30d --image=nginx:1.27-alpine --overrides='{"spec":{"nodeSelector":{"training":"missing"}}}'
 kubectl get pod misplaced -n k8s-30d
 kubectl describe pod misplaced -n k8s-30d
@@ -91,4 +91,3 @@ Do not begin by restarting components. First identify the failed transition and 
 - Draw the diagram without notes.
 - Explain where desired and observed state live.
 - Classify a Pending Pod without blaming kubelet.
-

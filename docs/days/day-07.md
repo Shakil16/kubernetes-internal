@@ -25,17 +25,17 @@ Ask a colleague to choose one scenario, or choose randomly and hide the title. S
 
 ### Scenario A · Accepted but never scheduled
 
-```powershell
-kubectl apply -f labs/manifests/09-failures.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.failures.enabled=true
 kubectl get pods -n k8s-30d
 ```
 
-Diagnose `failure-pending`. Do not read the manifest until you have collected status, node assignment, conditions, and events. Repair by labeling a disposable node or removing the selector. Prefer patching the Pod's controller in real systems; this standalone Pod must be recreated because most Pod spec fields are immutable.
+Diagnose `failure-pending`. Do not read the chart template until you have collected status, node assignment, conditions, and events. Repair by labeling a disposable node or removing the selector. Prefer patching the Pod's controller in real systems; this standalone Pod must be recreated because most Pod spec fields are immutable.
 
 ### Scenario B · Controller chain
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl scale deployment/web -n k8s-30d --replicas=4
 kubectl get deployment,replicaset,pod -n k8s-30d -l app=web
 ```
@@ -44,15 +44,15 @@ Explain every owner relationship and status count. Delete one Pod and prove whic
 
 ### Scenario C · API-to-Service trace
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl run client -n k8s-30d --image=busybox:1.36.1 --restart=Never -- sleep 1d
 kubectl exec -n k8s-30d client -- wget -qO- http://web
 ```
 
 Patch the Service selector to `app=wrong`, observe EndpointSlices, diagnose, and restore:
 
-```powershell
+```console
 kubectl patch service web -n k8s-30d --type=merge -p '{"spec":{"selector":{"app":"wrong"}}}'
 kubectl get service,endpointslice -n k8s-30d
 kubectl exec -n k8s-30d client -- wget -T 2 -qO- http://web
@@ -87,4 +87,3 @@ Answer each in under three minutes:
 5. What is the failure tolerance of three- and five-member etcd clusters?
 
 Strong answers follow: **mechanism → failure effect → evidence → mitigation → prevention**. Avoid reciting component names without describing their interactions.
-

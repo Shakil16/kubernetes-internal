@@ -51,7 +51,7 @@ flowchart LR
 
 This repository is a static Docsify site and also reads cleanly as ordinary GitHub Markdown.
 
-```powershell
+```console
 python -m http.server 8000
 ```
 
@@ -61,13 +61,20 @@ Open `http://localhost:8000`. For GitHub Pages, publish the repository root from
 
 Course resources use the `k8s-30d` namespace unless a cluster-scoped concept requires otherwise. Do not run failure injection against a shared or production cluster. Confirm context before every lab:
 
-```powershell
+```console
 kubectl config current-context
 kubectl cluster-info
 kubectl get nodes
 ```
 
-Clean course resources with `./labs/Remove-Lab.ps1`. Review the script before running it.
+Install and clean lab resources through the course Helm release:
+
+```console
+helm upgrade --install k8s-30d labs/kubernetes-internals --namespace default
+helm uninstall k8s-30d --namespace default
+```
+
+The release is stored in `default` and owns the separate `k8s-30d` course namespace. Review the chart and confirm your current context before installing it.
 
 ## Primary references
 
@@ -76,4 +83,3 @@ Clean course resources with `./labs/Remove-Lab.ps1`. Review the script before ru
 - [Debug applications](https://kubernetes.io/docs/tasks/debug/debug-application/)
 - [Production environment](https://kubernetes.io/docs/setup/production-environment/)
 - [Kubernetes API reference](https://kubernetes.io/docs/reference/kubernetes-api/)
-

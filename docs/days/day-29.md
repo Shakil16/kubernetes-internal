@@ -32,7 +32,7 @@ Never infer current version-skew policy from memory; check the official policy f
 
 ## Lab · Preflight an upgrade
 
-```powershell
+```console
 kubectl version
 kubectl get nodes -o custom-columns=NAME:.metadata.name,KUBELET:.status.nodeInfo.kubeletVersion,RUNTIME:.status.nodeInfo.containerRuntimeVersion,OS:.status.nodeInfo.osImage
 kubectl api-versions
@@ -47,7 +47,7 @@ kubectl auth can-i --list
 
 Create an upgrade risk table with owner, compatibility evidence, test, rollback, and stop signal for every add-on. On a disposable multi-node lab, rehearse one worker:
 
-```powershell
+```console
 kubectl cordon <worker>
 kubectl drain <worker> --ignore-daemonsets --delete-emptydir-data --timeout=5m
 # perform the distribution-supported node upgrade here

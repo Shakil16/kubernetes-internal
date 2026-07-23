@@ -34,34 +34,34 @@ Use stable, controlled node labels—not cloud-generated names that may change. 
 
 Use only a disposable local node:
 
-```powershell
-$node = kubectl get node -o jsonpath='{.items[0].metadata.name}'
-kubectl label node $node course.example.com/disk=fast
-kubectl get node $node --show-labels
+```console
+kubectl get nodes
+kubectl label node <node-name> course.example.com/disk=fast
+kubectl get node <node-name> --show-labels
 kubectl run selected -n k8s-30d --image=busybox:1.36.1 --overrides='{"spec":{"nodeSelector":{"course.example.com/disk":"fast"},"containers":[{"name":"selected","image":"busybox:1.36.1","command":["sleep","1d"]}]}}'
 kubectl get pod selected -n k8s-30d -o wide
 ```
 
 Taint the node and prove a non-tolerating Pod remains Pending:
 
-```powershell
-kubectl taint node $node dedicated=course:NoSchedule
+```console
+kubectl taint node <node-name> dedicated=course:NoSchedule
 kubectl run not-tolerating -n k8s-30d --image=busybox:1.36.1 -- sleep 1d
 kubectl describe pod not-tolerating -n k8s-30d
 ```
 
 Apply a tolerating Pod:
 
-```powershell
+```console
 kubectl run tolerating -n k8s-30d --image=busybox:1.36.1 --overrides='{"spec":{"tolerations":[{"key":"dedicated","operator":"Equal","value":"course","effect":"NoSchedule"}],"containers":[{"name":"tolerating","image":"busybox:1.36.1","command":["sleep","1d"]}]}}'
 kubectl get pods -n k8s-30d -o wide
 ```
 
 Clean up immediately:
 
-```powershell
-kubectl taint node $node dedicated=course:NoSchedule-
-kubectl label node $node course.example.com/disk-
+```console
+kubectl taint node <node-name> dedicated=course:NoSchedule-
+kubectl label node <node-name> course.example.com/disk-
 kubectl delete pod selected not-tolerating tolerating -n k8s-30d --ignore-not-found
 ```
 
@@ -81,4 +81,3 @@ kubectl delete pod selected not-tolerating tolerating -n k8s-30d --ignore-not-fo
 2. **Taint versus toleration?** Taint repels; toleration removes that rejection. Affinity may still be needed to attract.
 3. **Why Pending when CPU looks free?** Scheduling uses requested allocatable capacity and other feasibility constraints, not current CPU percentage.
 4. **What does NoExecute do?** It prevents scheduling and can evict already running Pods lacking a matching toleration, optionally after `tolerationSeconds`.
-

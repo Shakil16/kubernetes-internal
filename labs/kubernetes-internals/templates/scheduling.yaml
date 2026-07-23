@@ -1,7 +1,10 @@
+{{- if .Values.labs.scheduling.enabled }}
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
-  name: k8s-30d-important
+  name: {{ .Values.labs.scheduling.priorityClassName }}
+  labels:
+    {{- include "kubernetes-internals.labels" . | nindent 4 }}
 value: 100000
 globalDefault: false
 description: Priority used only by the Kubernetes 30-day scheduling lab.
@@ -10,9 +13,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: placement-demo
-  namespace: k8s-30d
+  namespace: {{ include "kubernetes-internals.namespace" . }}
+  labels:
+    {{- include "kubernetes-internals.labels" . | nindent 4 }}
 spec:
-  replicas: 3
+  replicas: {{ .Values.labs.scheduling.replicas }}
   selector:
     matchLabels:
       app: placement-demo
@@ -21,7 +26,7 @@ spec:
       labels:
         app: placement-demo
     spec:
-      priorityClassName: k8s-30d-important
+      priorityClassName: {{ .Values.labs.scheduling.priorityClassName }}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -40,9 +45,10 @@ spec:
               app: placement-demo
       containers:
         - name: sleeper
-          image: busybox:1.36.1
+          image: {{ .Values.images.busybox | quote }}
+          imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "sleep 7d"]
           resources:
             requests: {cpu: 10m, memory: 8Mi}
             limits: {cpu: 50m, memory: 32Mi}
-
+{{- end }}

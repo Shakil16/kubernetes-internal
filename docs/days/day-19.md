@@ -28,8 +28,8 @@ Rules are additive allow rules; RBAC has no explicit deny. Avoid wildcards, `clu
 
 ## Lab · Least privilege
 
-```powershell
-kubectl apply -f labs/manifests/06-rbac.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.rbac.enabled=true
 kubectl auth can-i list pods -n k8s-30d --as=system:serviceaccount:k8s-30d:pod-reader
 kubectl auth can-i get pods/log -n k8s-30d --as=system:serviceaccount:k8s-30d:pod-reader
 kubectl auth can-i create pods -n k8s-30d --as=system:serviceaccount:k8s-30d:pod-reader
@@ -40,7 +40,7 @@ kubectl auth can-i --list -n k8s-30d --as=system:serviceaccount:k8s-30d:pod-read
 
 Inspect the exact binding chain:
 
-```powershell
+```console
 kubectl get serviceaccount,role,rolebinding -n k8s-30d -o yaml
 kubectl create token pod-reader -n k8s-30d --duration=10m
 ```
@@ -66,4 +66,3 @@ Use identity-provider groups instead of individual bindings; time-bound privileg
 3. **RoleBinding to ClusterRole versus ClusterRoleBinding?** The former grants selected rules only inside one namespace; the latter grants at cluster scope.
 4. **Why is Secret read dangerous?** It can expose credentials and enable lateral movement; Pod creation/exec may also indirectly reach secrets.
 5. **How do you debug Forbidden?** Extract identity/verb/resource/namespace, test `auth can-i`, trace bindings and group membership, then add the narrowest justified permission.
-

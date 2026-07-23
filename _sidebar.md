@@ -50,4 +50,4 @@
   - [Command field guide](docs/reference/commands.md)
   - [Troubleshooting runbook](docs/reference/troubleshooting.md)
   - [Interview question bank](docs/reference/interview-bank.md)
-  - [Lab manifests](labs/README.md)
+  - [Runnable Helm labs](labs/README.md)

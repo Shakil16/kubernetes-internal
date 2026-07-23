@@ -28,28 +28,32 @@ Mutating and validating admission webhooks receive AdmissionReview requests. The
 
 ## Lab A · Watch events and ownership
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl get pod -n k8s-30d -l app=web --watch --output-watch-events
 ```
 
 In another terminal, scale the Deployment and examine UID-based ownership:
 
-```powershell
+```console
 kubectl scale deployment/web -n k8s-30d --replicas=4
 kubectl get deployment,replicaset,pod -n k8s-30d -l app=web -o yaml
 kubectl delete deployment web -n k8s-30d --cascade=orphan
 kubectl get replicaset,pod -n k8s-30d -l app=web
 ```
 
-Orphaning demonstrates propagation. Clean and restore with the manifest.
+Orphaning demonstrates propagation. Restore the managed Deployment with the chart upgrade:
+
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
+```
 
 ## Lab B · Stuck finalizer
 
-```powershell
-kubectl apply -f labs/manifests/10-crd.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.crd.enabled=true
 kubectl wait customresourcedefinition/widgets.course.example.com --for=condition=Established --timeout=60s
-kubectl apply -f labs/manifests/10-widget.yaml
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.crd.widget.enabled=true
 kubectl patch widget demo -n k8s-30d --type=merge -p '{"metadata":{"finalizers":["course.example.com/cleanup"]}}'
 kubectl delete widget demo -n k8s-30d --wait=false
 kubectl get widget demo -n k8s-30d -o yaml
@@ -57,15 +61,15 @@ kubectl get widget demo -n k8s-30d -o yaml
 
 The CR remains terminating because no controller performs cleanup. In this controlled lab only, simulate completed cleanup:
 
-```powershell
+```console
 kubectl patch widget demo -n k8s-30d --type=merge -p '{"metadata":{"finalizers":[]}}'
 kubectl get widget demo -n k8s-30d
 ```
 
 Clean the cluster-scoped CRD after both Day 23 and 24:
 
-```powershell
-kubectl delete customresourcedefinition widgets.course.example.com
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.crd.widget.enabled=false --set labs.crd.enabled=false
 ```
 
 ## Production issues

@@ -1,40 +1,56 @@
 # Runnable labs
 
-The `manifests/` directory contains small, composable resources used throughout the course.
+The `kubernetes-internals/` directory is the single Helm chart used throughout the course. Its modules are disabled by default so the base install creates only the `k8s-30d` namespace.
 
-| File | Used for |
+| Value | Used for |
 |---|---|
-| `00-namespace.yaml` | Course namespace and labels |
-| `01-web.yaml` | Deployment, Service, rollout, networking, and probe labs |
-| `02-pod-internals.yaml` | Init container, sidecar, and shared volume |
-| `03-scheduling.yaml` | Node selection, anti-affinity, topology spread, priority |
-| `04-storage.yaml` | PVC and mounted volume |
-| `05-workloads.yaml` | StatefulSet, headless Service, DaemonSet, Job, CronJob |
-| `06-rbac.yaml` | Least-privilege ServiceAccount, Role, RoleBinding |
-| `07-security.yaml` | Pod Security Admission compatible workload and NetworkPolicies |
-| `08-scaling-reliability.yaml` | Requests, HPA, probes, PDB, termination |
-| `09-failures.yaml` | Deliberately broken Pods for Day 26 |
-| `10-crd.yaml`, `10-widget.yaml` | A small CRD and Custom Resource, applied in discovery-safe order |
+| `labs.web.enabled` | Deployment, Service, rollout, networking, and probe labs |
+| `labs.podInternals.enabled` | Init container, sidecar, and shared volume |
+| `labs.scheduling.enabled` | Node selection, anti-affinity, topology spread, priority |
+| `labs.storage.enabled` | PVC and mounted volume |
+| `labs.workloads.enabled` | StatefulSet, headless Service, DaemonSet, Job, CronJob |
+| `labs.rbac.enabled` | Least-privilege ServiceAccount, Role, RoleBinding |
+| `labs.security.enabled` | Pod Security Admission compatible workload and NetworkPolicies |
+| `labs.scalingReliability.enabled` | Requests, HPA, probes, PDB, termination |
+| `labs.failures.enabled` | Deliberately broken Pods for Day 26 |
+| `labs.crd.enabled`, `labs.crd.widget.enabled` | A small CRD and Custom Resource, enabled in discovery-safe order |
 
-## Apply a lab
+## Install and enable a lab
 
-```powershell
-kubectl apply -f labs/manifests/00-namespace.yaml
-kubectl apply -f labs/manifests/01-web.yaml
-kubectl get all -n k8s-30d
+```console
+helm upgrade --install k8s-30d labs/kubernetes-internals --namespace default
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
+kubectl get all --namespace k8s-30d
+```
+
+Use `--reuse-values` whenever an upgrade should keep earlier modules enabled. Inspect the effective configuration with:
+
+```console
+helm get values k8s-30d --namespace default
+helm get manifest k8s-30d --namespace default
 ```
 
 ## Reset one lab
 
-```powershell
-kubectl delete -f labs/manifests/01-web.yaml --ignore-not-found
-kubectl apply -f labs/manifests/01-web.yaml
+Disable and re-enable its module. The first upgrade removes the module’s managed resources; the second recreates them:
+
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=false
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 ```
 
-## Cleanup everything namespaced
+For the CRD exercise, enable the CRD first, wait for discovery, and then enable the custom resource:
 
-```powershell
-./labs/Remove-Lab.ps1
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.crd.enabled=true
+kubectl wait --for=condition=Established customresourcedefinition/widgets.course.example.com --timeout=60s
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.crd.widget.enabled=true
 ```
 
-Read every manifest before applying it. The failure manifest is intentionally unhealthy; that is its expected state.
+## Cleanup
+
+```console
+helm uninstall k8s-30d --namespace default
+```
+
+Read the templates and [default values](kubernetes-internals/values.yaml) before installing them. The failures module is intentionally unhealthy; that is its expected state.

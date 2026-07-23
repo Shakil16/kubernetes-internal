@@ -4,7 +4,7 @@ The most valuable command is the one that tests a specific hypothesis. Start rea
 
 ## Context and API discovery
 
-```powershell
+```console
 kubectl config get-contexts
 kubectl config current-context
 kubectl config use-context <context>
@@ -20,9 +20,23 @@ kubectl get --raw '/readyz?verbose'
 
 Before any write, say the context and namespace aloud. Prefer `-n <namespace>` even if a default is configured.
 
+## Helm-managed course labs
+
+```console
+helm lint labs/kubernetes-internals
+helm upgrade --install k8s-30d labs/kubernetes-internals --namespace default
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
+helm get values k8s-30d --namespace default
+helm get manifest k8s-30d --namespace default
+helm status k8s-30d --namespace default
+helm uninstall k8s-30d --namespace default
+```
+
+The release is stored in `default` but manages course workloads in `k8s-30d`. Keep `--reuse-values` on module upgrades so Helm does not disable modules enabled earlier. Use `helm get manifest` to compare the rendered source with live resources.
+
 ## Inventory and structured output
 
-```powershell
+```console
 kubectl get pod -A -o wide
 kubectl get deployment,replicaset,pod -n <ns> --show-labels
 kubectl describe pod <pod> -n <ns>
@@ -31,14 +45,14 @@ kubectl get pod <pod> -n <ns> -o json
 kubectl get pod -n <ns> --field-selector=status.phase=Pending
 kubectl get pod -n <ns> -l app=web
 kubectl get pod -n <ns> -o custom-columns=NAME:.metadata.name,NODE:.spec.nodeName,PHASE:.status.phase,IP:.status.podIP
-kubectl get pod <pod> -n <ns> -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}{"`n"}'
+kubectl get pod <pod> -n <ns> -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}'
 ```
 
 Use `get` to compare many objects, `describe` for human-focused state/events, and YAML/JSON for exact fields/ownership.
 
 ## Events
 
-```powershell
+```console
 kubectl get events -n <ns> --sort-by='.metadata.creationTimestamp'
 kubectl get events -A --field-selector reason=FailedScheduling
 kubectl get events -n <ns> --field-selector involvedObject.name=<name>
@@ -49,7 +63,7 @@ Events expire and may aggregate. Capture them early; do not treat them as durabl
 
 ## Logs
 
-```powershell
+```console
 kubectl logs <pod> -n <ns>
 kubectl logs <pod> -n <ns> -c <container> --tail=200 --timestamps
 kubectl logs <pod> -n <ns> -c <container> --previous
@@ -62,7 +76,7 @@ Always check `--previous` for restarted containers before another restart overwr
 
 ## Exec, port forwarding, proxy, and debug
 
-```powershell
+```console
 kubectl exec <pod> -n <ns> -c <container> -- <command>
 kubectl exec -it <pod> -n <ns> -- sh
 kubectl port-forward -n <ns> service/<service> 8080:80
@@ -76,7 +90,7 @@ Ephemeral debug containers can have elevated visibility. Audit and remove debug 
 
 ## Declarative changes and diff
 
-```powershell
+```console
 kubectl diff -f <file>
 kubectl apply -f <file> --server-side --dry-run=server
 kubectl apply -f <file> --server-side --field-manager=<manager>
@@ -86,11 +100,11 @@ kubectl patch <kind> <name> -n <ns> --type=json -p='<json-patch-array>'
 kubectl edit <kind> <name> -n <ns>
 ```
 
-Prefer reviewed files/GitOps for repeatability. `edit` and imperative patches are useful mitigation tools but must be reconciled back to source to prevent drift.
+The course configuration itself is Helm-managed; these generic `kubectl apply` commands remain here because server-side apply and field ownership are course topics. Prefer reviewed charts/files or GitOps for repeatability. `edit` and imperative patches are useful mitigation tools but must be reconciled back to source to prevent drift.
 
 ## Rollouts and workload control
 
-```powershell
+```console
 kubectl rollout status deployment/<name> -n <ns> --timeout=2m
 kubectl rollout history deployment/<name> -n <ns>
 kubectl rollout pause deployment/<name> -n <ns>
@@ -106,7 +120,7 @@ Do not use restart as diagnosis. Inspect the revision, conditions, ReplicaSets, 
 
 ## Nodes, placement, and maintenance
 
-```powershell
+```console
 kubectl get node -o wide
 kubectl describe node <node>
 kubectl get lease <node> -n kube-node-lease -o yaml
@@ -123,7 +137,7 @@ Review PDBs, storage, local data, unmanaged Pods, quorum, and replacement capaci
 
 ## Resources, metrics, and autoscaling
 
-```powershell
+```console
 kubectl top node
 kubectl top pod -n <ns> --containers
 kubectl describe resourcequota -n <ns>
@@ -137,7 +151,7 @@ kubectl get --raw /apis/metrics.k8s.io/v1beta1/nodes
 
 ## Networking and DNS
 
-```powershell
+```console
 kubectl get service -n <ns> -o wide
 kubectl get endpointslice -n <ns> -l kubernetes.io/service-name=<service> -o wide
 kubectl get networkpolicy -A
@@ -153,7 +167,7 @@ Trace application listener → Pod IP → EndpointSlice → ClusterIP → DNS �
 
 ## Storage
 
-```powershell
+```console
 kubectl get pvc,pv -A
 kubectl describe pvc <pvc> -n <ns>
 kubectl get storageclass -o yaml
@@ -166,7 +180,7 @@ Distinguish provisioning, binding/topology, controller attachment, node staging/
 
 ## Security and identity
 
-```powershell
+```console
 kubectl auth whoami
 kubectl auth can-i <verb> <resource> -n <ns>
 kubectl auth can-i --list -n <ns>
@@ -181,7 +195,7 @@ Never put tokens, Secret values, certificate private keys, or full kubeconfigs i
 
 ## API ownership and advanced objects
 
-```powershell
+```console
 kubectl get <kind> <name> -o yaml --show-managed-fields
 kubectl get <kind> --watch --output-watch-events
 kubectl get crd
@@ -202,4 +216,3 @@ Before forced finalizer removal, identify its controller and incomplete external
 4. Capture current and previous state.
 5. Change the controller/template, not a disposable child Pod.
 6. Verify from the affected user's network and original SLO signal.
-

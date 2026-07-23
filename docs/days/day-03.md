@@ -33,27 +33,26 @@ Success from `kubectl apply` means the desired object was accepted, not that a r
 
 ## Lab · Observe every boundary
 
-```powershell
+```console
 # Local serialization only; no server defaults or admission
 kubectl create deployment flow-demo --image=nginx:1.27-alpine -n k8s-30d --dry-run=client -o yaml
 
-# Ask the API server to validate/default without persisting
-kubectl apply -f labs/manifests/01-web.yaml --server-side --dry-run=server -o yaml
+# Ask the API server to validate/default the generated object without persisting
+kubectl create deployment flow-demo --image=nginx:1.27-alpine -n k8s-30d --dry-run=client -o yaml | kubectl apply --server-side --dry-run=server -f - -o yaml
 
-# Persist and inspect field ownership and descendants
-kubectl apply -f labs/manifests/01-web.yaml --server-side --field-manager=course
-kubectl get deployment web -n k8s-30d -o yaml --show-managed-fields
-kubectl get replicaset,pod -n k8s-30d -l app=web -o wide
-kubectl rollout status deployment/web -n k8s-30d
-kubectl get endpointslice -n k8s-30d -l kubernetes.io/service-name=web
+# Persist the temporary object and inspect field ownership and descendants
+kubectl create deployment flow-demo --image=nginx:1.27-alpine -n k8s-30d --dry-run=client -o yaml | kubectl apply --server-side --field-manager=course -f -
+kubectl get deployment flow-demo -n k8s-30d -o yaml --show-managed-fields
+kubectl get replicaset,pod -n k8s-30d -l app=flow-demo -o wide
+kubectl rollout status deployment/flow-demo -n k8s-30d
 ```
 
 Inspect raw discovery and API responses:
 
-```powershell
+```console
 kubectl get --raw /api
 kubectl get --raw /apis/apps/v1
-kubectl get --raw /apis/apps/v1/namespaces/k8s-30d/deployments/web
+kubectl get --raw /apis/apps/v1/namespaces/k8s-30d/deployments/flow-demo
 kubectl get events -n k8s-30d --watch
 ```
 
@@ -61,12 +60,13 @@ kubectl get events -n k8s-30d --watch
 
 Try an invalid image field and then a valid-but-unavailable image. The first should fail validation or object creation; the second is stored and fails asynchronously at kubelet.
 
-```powershell
+```console
 kubectl run invalid-spec -n k8s-30d --image='' --dry-run=server
 kubectl run unavailable-image -n k8s-30d --image=invalid.example.invalid/nope:v1
 kubectl get pod unavailable-image -n k8s-30d -o yaml
 kubectl describe pod unavailable-image -n k8s-30d
 kubectl delete pod unavailable-image -n k8s-30d
+kubectl delete deployment flow-demo -n k8s-30d
 ```
 
 ## Production issues
@@ -83,4 +83,3 @@ kubectl delete pod unavailable-image -n k8s-30d
 2. **Client-side versus server-side dry-run?** Client dry-run performs local generation; server dry-run exercises server defaulting, validation, and admission without persistence.
 3. **Why can apply succeed while a Pod fails?** API acceptance is synchronous, while scheduling, image pull, startup, and readiness are later reconciled transitions.
 4. **How do watches scale better than polling?** Clients receive ordered changes after a resource version rather than repeatedly listing unchanged state; they must still relist on compaction or expiry.
-

@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["namespace", "images", "labs"],
+  "properties": {
+    "namespace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "create", "labels"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "create": {"type": "boolean"},
+        "labels": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "images": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["busybox", "nginx", "restrictedNginx", "hpaExample", "stress"],
+      "properties": {
+        "busybox": {"type": "string", "minLength": 1},
+        "nginx": {"type": "string", "minLength": 1},
+        "restrictedNginx": {"type": "string", "minLength": 1},
+        "hpaExample": {"type": "string", "minLength": 1},
+        "stress": {"type": "string", "minLength": 1}
+      }
+    },
+    "labs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "web",
+        "podInternals",
+        "scheduling",
+        "storage",
+        "workloads",
+        "rbac",
+        "security",
+        "scalingReliability",
+        "failures",
+        "crd"
+      ],
+      "properties": {
+        "web": {
+          "$ref": "#/definitions/enabledWithReplicas"
+        },
+        "podInternals": {
+          "$ref": "#/definitions/enabledOnly"
+        },
+        "scheduling": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "replicas", "priorityClassName"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "replicas": {"type": "integer", "minimum": 0},
+            "priorityClassName": {"type": "string", "minLength": 1}
+          }
+        },
+        "storage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "size", "storageClassName"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "size": {"type": "string", "minLength": 1},
+            "storageClassName": {"type": "string"}
+          }
+        },
+        "workloads": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "statefulSetReplicas", "cronSchedule"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "statefulSetReplicas": {"type": "integer", "minimum": 0},
+            "cronSchedule": {"type": "string", "minLength": 1}
+          }
+        },
+        "rbac": {
+          "$ref": "#/definitions/enabledOnly"
+        },
+        "security": {
+          "$ref": "#/definitions/enabledOnly"
+        },
+        "scalingReliability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "replicas",
+            "minReplicas",
+            "maxReplicas",
+            "targetCPUUtilizationPercentage"
+          ],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "replicas": {"type": "integer", "minimum": 0},
+            "minReplicas": {"type": "integer", "minimum": 1},
+            "maxReplicas": {"type": "integer", "minimum": 1},
+            "targetCPUUtilizationPercentage": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "failures": {
+          "$ref": "#/definitions/enabledOnly"
+        },
+        "crd": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "widget"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "widget": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["enabled", "message", "replicas"],
+              "properties": {
+                "enabled": {"type": "boolean"},
+                "message": {"type": "string", "minLength": 1},
+                "replicas": {"type": "integer", "minimum": 0, "maximum": 10}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "enabledOnly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {"type": "boolean"}
+      }
+    },
+    "enabledWithReplicas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "replicas"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "replicas": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

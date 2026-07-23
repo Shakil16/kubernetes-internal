@@ -25,22 +25,22 @@ In iptables mode, rules probabilistically DNAT traffic to endpoints. IPVS uses k
 
 ## Lab · Walk the chain
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl run client -n k8s-30d --image=nicolaka/netshoot --restart=Never -- sleep 1d
 kubectl get service web -n k8s-30d -o wide
 kubectl get endpointslice -n k8s-30d -l kubernetes.io/service-name=web -o wide
 kubectl get pod -n k8s-30d -l app=web -o wide
 kubectl exec -n k8s-30d client -- curl -sS http://web
-$vip = kubectl get service web -n k8s-30d -o jsonpath='{.spec.clusterIP}'
-kubectl exec -n k8s-30d client -- curl -sS http://$vip
+kubectl get service web -n k8s-30d -o custom-columns=NAME:.metadata.name,CLUSTER-IP:.spec.clusterIP
+kubectl exec -n k8s-30d client -- curl -sS http://<cluster-ip>
 ```
 
-Compare Service `port`, named `targetPort`, Pod container port, actual listener, selectors, and EndpointSlice readiness.
+Replace `<cluster-ip>` with the printed ClusterIP. Compare Service `port`, named `targetPort`, Pod container port, actual listener, selectors, and EndpointSlice readiness.
 
 Determine the implementation:
 
-```powershell
+```console
 kubectl get daemonset -n kube-system
 kubectl get configmap kube-proxy -n kube-system -o yaml
 kubectl logs -n kube-system -l k8s-app=kube-proxy --tail=100
@@ -50,7 +50,7 @@ Clusters with kube-proxy replacement may have no kube-proxy DaemonSet; inspect t
 
 ## Break/fix · Empty endpoints
 
-```powershell
+```console
 kubectl patch service web -n k8s-30d --type=merge -p '{"spec":{"selector":{"app":"typo"}}}'
 kubectl get endpointslice -n k8s-30d -l kubernetes.io/service-name=web
 kubectl exec -n k8s-30d client -- curl --connect-timeout 2 http://web
@@ -75,4 +75,3 @@ This order prevents a week of iptables debugging when the selector is misspelled
 2. **iptables versus IPVS?** They use different kernel mechanisms and lookup models; both are kube-proxy implementations. Discuss operational behavior, not a simplistic performance slogan.
 3. **What does kube-proxy do?** Watches Service/EndpointSlice state and realizes the Service forwarding dataplane; it is not an HTTP proxy.
 4. **Service exists but is unreachable—first check?** EndpointSlices, selector, ports, and direct backend reachability before low-level dataplane inspection.
-

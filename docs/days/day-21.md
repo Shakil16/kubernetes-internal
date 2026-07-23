@@ -32,9 +32,9 @@ VPA recommends or changes container requests; update modes can require eviction/
 
 ## Lab · Generate an HPA decision
 
-```powershell
+```console
 kubectl top nodes
-kubectl apply -f labs/manifests/08-scaling-reliability.yaml
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.scalingReliability.enabled=true
 kubectl get deployment,hpa,pdb -n k8s-30d
 kubectl describe hpa scalable-web -n k8s-30d
 kubectl top pods -n k8s-30d -l app=scalable-web
@@ -42,13 +42,13 @@ kubectl top pods -n k8s-30d -l app=scalable-web
 
 If metrics are available, generate load:
 
-```powershell
+```console
 kubectl run load-generator -n k8s-30d --image=busybox:1.36.1 --restart=Never -it --rm -- sh -c 'while sleep 0.01; do wget -q -O- http://scalable-web; done'
 ```
 
 In a second terminal:
 
-```powershell
+```console
 kubectl get hpa,pod -n k8s-30d -w
 kubectl describe hpa scalable-web -n k8s-30d
 ```
@@ -59,10 +59,10 @@ Stop load with Ctrl+C. Observe stabilization before scale-down rather than assum
 
 Temporarily remove CPU requests from the Deployment:
 
-```powershell
+```console
 kubectl set resources deployment/scalable-web -n k8s-30d --requests=memory=32Mi
 kubectl describe hpa scalable-web -n k8s-30d
-kubectl apply -f labs/manifests/08-scaling-reliability.yaml
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.scalingReliability.enabled=true
 ```
 
 Explain why CPU utilization cannot be calculated for Pods without a CPU request.
@@ -82,4 +82,3 @@ Explain why CPU utilization cannot be calculated for Pods without a CPU request.
 2. **How does HPA calculate replicas?** Give the ratio formula, then mention requests, tolerance, missing metrics, and stabilization.
 3. **Why Metrics Server?** It implements resource metrics for `top` and resource-based autoscaling; not durable observability.
 4. **HPA versus VPA?** HPA changes replica count; VPA changes per-Pod requests. Coordinate signals to avoid conflicting loops.
-

@@ -22,17 +22,17 @@ The scheduler considers unscheduled Pods. It first filters infeasible nodes—re
 
 ## Lab · Watch the ownership chain
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl get deployment,replicaset,pod -n k8s-30d -l app=web --show-labels
-kubectl get deployment web -n k8s-30d -o jsonpath='{.metadata.uid}{"`n"}'
-kubectl get replicaset -n k8s-30d -l app=web -o jsonpath='{range .items[*]}{.metadata.name}{" owner="}{.metadata.ownerReferences[0].kind}{"/"}{.metadata.ownerReferences[0].name}{"`n"}{end}'
+kubectl get deployment web -n k8s-30d -o jsonpath='{.metadata.uid}{"\n"}'
+kubectl get replicaset -n k8s-30d -l app=web -o jsonpath='{range .items[*]}{.metadata.name}{" owner="}{.metadata.ownerReferences[0].kind}{"/"}{.metadata.ownerReferences[0].name}{"\n"}{end}'
 kubectl get pod -n k8s-30d -l app=web -o custom-columns=NAME:.metadata.name,NODE:.spec.nodeName,OWNER:.metadata.ownerReferences[0].kind,READY:.status.conditions[-1].status
 ```
 
 Scale and watch reconciliation:
 
-```powershell
+```console
 kubectl get pod -n k8s-30d -l app=web --watch
 # In another terminal:
 kubectl scale deployment/web -n k8s-30d --replicas=5
@@ -41,7 +41,7 @@ kubectl scale deployment/web -n k8s-30d --replicas=3
 
 ## Break/fix · Unschedulable resource request
 
-```powershell
+```console
 kubectl run too-large -n k8s-30d --image=nginx:1.27-alpine --requests='cpu=100000,memory=1Ti'
 kubectl describe pod too-large -n k8s-30d
 kubectl get events -n k8s-30d --field-selector reason=FailedScheduling
@@ -63,4 +63,3 @@ If your `kubectl run` version does not support `--requests`, generate YAML with 
 2. **Does the scheduler start containers?** No. It records node assignment. The node's kubelet drives runtime, network, mounts, and probes.
 3. **What makes a good controller?** Level-triggered, idempotent reconciliation; bounded retries; current-state reads; status/conditions; correct ownership/finalization.
 4. **What if no node matches?** The Pod remains Pending and is retried when relevant cluster state changes; events explain the current blockers.
-

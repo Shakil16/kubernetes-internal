@@ -19,8 +19,8 @@ CronJob creates Jobs according to a controller-observed schedule. It is not a re
 
 ## Lab · Completion and schedule
 
-```powershell
-kubectl apply -f labs/manifests/05-workloads.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.workloads.enabled=true
 kubectl get job,cronjob -n k8s-30d
 kubectl wait job/report-once -n k8s-30d --for=condition=complete --timeout=120s
 kubectl logs job/report-once -n k8s-30d
@@ -31,7 +31,7 @@ kubectl get job -n k8s-30d --watch
 
 Trigger a CronJob manually without waiting:
 
-```powershell
+```console
 kubectl create job heartbeat-manual -n k8s-30d --from=cronjob/heartbeat
 kubectl wait job/heartbeat-manual -n k8s-30d --for=condition=complete --timeout=120s
 kubectl logs job/heartbeat-manual -n k8s-30d
@@ -39,7 +39,7 @@ kubectl logs job/heartbeat-manual -n k8s-30d
 
 Create a failure and observe retry/backoff:
 
-```powershell
+```console
 kubectl create job fail-demo -n k8s-30d --image=busybox:1.36.1 -- sh -c 'echo attempt; exit 7'
 kubectl get pod -n k8s-30d -l job-name=fail-demo -w
 kubectl describe job fail-demo -n k8s-30d
@@ -70,4 +70,3 @@ kubectl delete job fail-demo heartbeat-manual -n k8s-30d --ignore-not-found
 2. **Job versus CronJob?** CronJob schedules Job objects; Job manages Pod attempts and completion.
 3. **Does Forbid guarantee exactly once?** No. It prevents controller-created overlapping Jobs, not every distributed duplicate. Build idempotent processing.
 4. **Never versus OnFailure?** `OnFailure` restarts containers within a Pod; `Never` leaves a failed Pod and Job creates another attempt, improving per-attempt evidence.
-

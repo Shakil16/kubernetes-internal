@@ -20,7 +20,7 @@ Work through the scenarios below as read-only investigations on a local cluster.
 
 ## Scenario 1 · Node NotReady
 
-```powershell
+```console
 kubectl get nodes -o wide
 kubectl describe node <node>
 kubectl get lease <node> -n kube-node-lease -o yaml
@@ -47,14 +47,16 @@ Check disk/inodes, cgroups, certificates, API connectivity, CNI/CSI plugin socke
 
 ## Scenario 3 · PVC Pending or mount failure
 
-```powershell
+```console
 kubectl get pvc,pv -A
 kubectl describe pvc <claim> -n <namespace>
 kubectl describe pod <pod> -n <namespace>
 kubectl get storageclass,csidriver,csinode
 kubectl get volumeattachment
-kubectl get pods -A | Select-String -Pattern 'csi|provision'
+kubectl get pods -A
 ```
+
+Inspect the all-namespace Pod list for CSI and provisioner components.
 
 Separate provisioning, binding/topology, attachment, and node mount. Escalate to the storage backend only after identifying the failed CSI operation and resource handle—redacted where necessary.
 
@@ -62,7 +64,7 @@ Separate provisioning, binding/topology, attachment, and node mount. Escalate to
 
 Quantify rather than sample:
 
-```powershell
+```console
 kubectl get pod -A --field-selector=status.phase=Pending -o wide
 kubectl get events -A --field-selector reason=FailedScheduling
 kubectl get lease kube-scheduler -n kube-system -o yaml
@@ -76,7 +78,7 @@ If events contain normal constraint explanations, the scheduler is working. If n
 
 Test DNS/TCP/TLS/load balancer, then:
 
-```powershell
+```console
 kubectl get --raw='/readyz?verbose'
 kubectl get --raw='/livez?verbose'
 kubectl get --raw='/metrics'

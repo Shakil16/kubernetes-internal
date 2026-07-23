@@ -25,8 +25,8 @@ NetworkPolicy is allow-list intent enforced by a supporting CNI. Policies are ad
 
 Enable your local distribution's ingress controller first, then discover the class:
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl get ingressclass
 kubectl create ingress course -n k8s-30d --class=nginx --rule='course.local/*=web:80'
 kubectl get ingress course -n k8s-30d -o yaml
@@ -35,14 +35,14 @@ kubectl describe ingress course -n k8s-30d
 
 Replace `nginx` with the installed class. Map `course.local` to the controller address only in your local environment, then test while preserving the Host header:
 
-```powershell
-curl.exe -H "Host: course.local" http://<ingress-address>/
+```console
+curl -H "Host: course.local" http://<ingress-address>/
 kubectl logs -n <controller-namespace> <controller-pod> --tail=100
 ```
 
 For TLS, generate a local certificate with a tool you trust, create a Secret, and add it to the Ingress:
 
-```powershell
+```console
 kubectl create secret tls course-tls -n k8s-30d --cert=course.crt --key=course.key
 kubectl patch ingress course -n k8s-30d --type=merge -p '{"spec":{"tls":[{"hosts":["course.local"],"secretName":"course-tls"}]}}'
 ```
@@ -51,15 +51,19 @@ Do not commit private keys.
 
 ## Lab B · Default deny and explicit allow
 
-```powershell
+```console
 kubectl run denied -n k8s-30d --image=nicolaka/netshoot --restart=Never -- sleep 1d
 kubectl run allowed -n k8s-30d --labels='access=web' --image=nicolaka/netshoot --restart=Never -- sleep 1d
-kubectl apply -f labs/manifests/07-security.yaml
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.security.enabled=true
 kubectl exec -n k8s-30d denied -- curl --connect-timeout 2 http://web
 kubectl exec -n k8s-30d allowed -- curl --connect-timeout 2 http://web
 ```
 
-Expected on a policy-enforcing CNI: denied times out, allowed succeeds. If both succeed, inspect CNI policy support before blaming YAML. Delete the security manifest after testing so later labs are not silently isolated.
+Expected on a policy-enforcing CNI: denied times out, allowed succeeds. If both succeed, inspect CNI policy support before blaming YAML. Disable the security module after testing so later labs are not silently isolated:
+
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.security.enabled=false
+```
 
 ## Production troubleshooting
 
@@ -77,4 +81,3 @@ Expected on a policy-enforcing CNI: denied times out, allowed succeeds. If both 
 2. **Why does an Ingress return 502?** The controller matched the route but failed to communicate successfully with a backend; follow Service, EndpointSlice, port/protocol, readiness, and policy.
 3. **Why NetworkPolicy?** It limits east-west/north-south reachability based on workload identity, reducing blast radius; it requires an enforcing CNI.
 4. **Are policies ordered?** No. Applicable policies are additive allow rules; there is no first-match rule order in the API model.
-

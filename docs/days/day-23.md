@@ -22,11 +22,11 @@ Production CRDs need structural schemas, defaulting/validation, pruning expectat
 
 ## Lab · Add an API type
 
-```powershell
-kubectl apply -f labs/manifests/10-crd.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.crd.enabled=true
 kubectl wait customresourcedefinition/widgets.course.example.com --for=condition=Established --timeout=60s
-kubectl apply -f labs/manifests/10-widget.yaml
-kubectl api-resources | Select-String widget
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.crd.widget.enabled=true
+kubectl api-resources --api-group=course.example.com
 kubectl explain widget
 kubectl explain widget.spec
 kubectl get widget demo -n k8s-30d -o yaml
@@ -35,14 +35,14 @@ kubectl get --raw /apis/course.example.com/v1alpha1/namespaces/k8s-30d/widgets
 
 Prove schema validation:
 
-```powershell
+```console
 kubectl patch widget demo -n k8s-30d --type=merge -p '{"spec":{"replicas":99}}'
 kubectl patch widget demo -n k8s-30d --type=merge -p '{"spec":{"replicas":3}}'
 ```
 
 Simulate one reconciliation by creating a child from desired state and writing status as a controller identity would:
 
-```powershell
+```console
 kubectl create deployment widget-demo -n k8s-30d --image=nginx:1.27-alpine --replicas=3
 kubectl patch widget demo -n k8s-30d --subresource=status --type=merge -p '{"status":{"observedGeneration":1,"readyReplicas":3,"conditions":[{"type":"Ready","status":"True","reason":"ChildrenReady","message":"All child replicas are ready"}]}}'
 kubectl get widget demo -n k8s-30d -o yaml

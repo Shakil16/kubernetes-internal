@@ -1,0 +1,21 @@
+The Kubernetes Internals lab release is ready.
+
+Course namespace:
+  {{ include "kubernetes-internals.namespace" . }}
+
+Enabled modules:
+{{- range $name, $config := .Values.labs }}
+{{- if and (kindIs "map" $config) $config.enabled }}
+  - {{ $name }}
+{{- end }}
+{{- end }}
+
+Inspect the release:
+  helm status {{ .Release.Name }} --namespace {{ .Release.Namespace }}
+  kubectl get all --namespace {{ include "kubernetes-internals.namespace" . }}
+
+Enable a module while preserving existing values:
+  helm upgrade {{ .Release.Name }} <chart-path> --namespace {{ .Release.Namespace }} --reuse-values --set labs.web.enabled=true
+
+Remove all course resources:
+  helm uninstall {{ .Release.Name }} --namespace {{ .Release.Namespace }}

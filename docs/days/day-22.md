@@ -31,8 +31,8 @@ A PDB limits voluntary disruption through the eviction API using `minAvailable` 
 
 ## Lab · Observe probes and PDB
 
-```powershell
-kubectl apply -f labs/manifests/08-scaling-reliability.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.scalingReliability.enabled=true
 kubectl get pod -n k8s-30d -l app=scalable-web -w
 kubectl describe pod -n k8s-30d -l app=scalable-web
 kubectl get pdb scalable-web -n k8s-30d
@@ -41,17 +41,17 @@ kubectl describe pdb scalable-web -n k8s-30d
 
 Scale to one replica and request eviction:
 
-```powershell
+```console
 kubectl scale deployment/scalable-web -n k8s-30d --replicas=1
 kubectl wait deployment/scalable-web -n k8s-30d --for=condition=Available --timeout=120s
-$pod = kubectl get pod -n k8s-30d -l app=scalable-web -o jsonpath='{.items[0].metadata.name}'
+kubectl get pod -n k8s-30d -l app=scalable-web
 kubectl create poddisruptionbudget pdb-test-copy -n k8s-30d --selector=app=scalable-web --min-available=1 --dry-run=client -o yaml
-kubectl delete pod $pod -n k8s-30d --dry-run=server
+kubectl delete pod <scalable-web-pod-name> -n k8s-30d --dry-run=server
 ```
 
-Direct delete is not blocked by PDB. To exercise eviction safely, use a disposable multi-node cluster and drain a worker hosting the Pod:
+Replace `<scalable-web-pod-name>` with a Pod from the first command. Direct delete is not blocked by PDB. To exercise eviction safely, use a disposable multi-node cluster and drain a worker hosting the Pod:
 
-```powershell
+```console
 kubectl cordon <worker-node>
 kubectl drain <worker-node> --ignore-daemonsets --delete-emptydir-data --timeout=2m
 kubectl uncordon <worker-node>
@@ -63,11 +63,11 @@ Do not drain a single-node cluster or control-plane node needed by the lab. Watc
 
 Patch liveness to a missing path, observe restarts, then restore:
 
-```powershell
+```console
 kubectl patch deployment scalable-web -n k8s-30d --type=json -p='[{"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe/httpGet/path","value":"/missing"}]'
 kubectl get pod -n k8s-30d -l app=scalable-web -w
 kubectl describe pod -n k8s-30d -l app=scalable-web
-kubectl apply -f labs/manifests/08-scaling-reliability.yaml
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.scalingReliability.enabled=true
 ```
 
 ## Production issues
@@ -85,4 +85,3 @@ kubectl apply -f labs/manifests/08-scaling-reliability.yaml
 3. **What happens during drain?** Node is made unschedulable; evictable workload Pods are requested through eviction, PDBs are honored, DaemonSets remain, controllers replace elsewhere.
 4. **What does PDB protect?** Budgeted voluntary evictions, not all causes of unavailability.
 5. **Describe graceful shutdown.** Endpoint removal/termination state, preStop if any, TERM, app drain/flush, grace deadline, then KILL.
-

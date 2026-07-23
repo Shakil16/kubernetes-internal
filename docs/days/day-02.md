@@ -29,7 +29,7 @@ If the scheduler stops, existing workloads keep running and explicitly bound Pod
 
 ## Lab · Inspect the control plane
 
-```powershell
+```console
 kubectl get pods -n kube-system -o wide
 kubectl get --raw='/readyz?verbose'
 kubectl get --raw='/livez?verbose'
@@ -41,7 +41,7 @@ kubectl describe lease kube-scheduler -n kube-system
 
 On a kubeadm/Kind control-plane node, these components commonly run as static Pods. Inspect without changing them:
 
-```powershell
+```console
 kubectl get pod -n kube-system -l component=kube-apiserver -o yaml
 kubectl logs -n kube-system -l component=kube-scheduler --tail=100
 kubectl logs -n kube-system -l component=kube-controller-manager --tail=100
@@ -53,8 +53,8 @@ Managed distributions can hide control-plane Pods; use provider health metrics a
 
 `kubectl get componentstatuses` may report stale or incomplete results because it relies on older component health behavior. Prefer API server `/livez` and `/readyz`, component metrics, leader-election Leases, and an actual write/read canary.
 
-```powershell
-kubectl create configmap api-canary -n k8s-30d --from-literal=timestamp=(Get-Date -Format o)
+```console
+kubectl create configmap api-canary -n k8s-30d --from-literal=timestamp=course-write-canary
 kubectl get configmap api-canary -n k8s-30d -o jsonpath='{.data.timestamp}'
 kubectl delete configmap api-canary -n k8s-30d
 ```
@@ -75,4 +75,3 @@ kubectl delete configmap api-canary -n k8s-30d
 2. **Can Pods run without the control plane?** Existing containers can continue, subject to local kubelet/runtime behavior; new scheduling, reconciliation, API operations, and reliable state coordination cannot.
 3. **What if the scheduler is down?** Existing Pods are unaffected; unscheduled Pods accumulate. Restore scheduler availability, examine leader election and logs, then watch the backlog clear.
 4. **Why separate cloud controller manager?** It decouples provider-specific infrastructure control from the Kubernetes core and limits credential exposure.
-

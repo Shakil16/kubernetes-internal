@@ -25,7 +25,7 @@ Avoid unbounded dumps during control-plane distress and avoid restarts that dest
 
 ## Pod Pending
 
-```powershell
+```console
 kubectl get pod <pod> -n <ns> -o wide
 kubectl describe pod <pod> -n <ns>
 kubectl get events -n <ns> --field-selector involvedObject.name=<pod>
@@ -41,7 +41,7 @@ Read events for `FailedCreatePodSandBox`, image pull, volume attach/mount, CNI, 
 
 ## CrashLoopBackOff
 
-```powershell
+```console
 kubectl get pod <pod> -n <ns> -o yaml
 kubectl logs <pod> -n <ns> -c <container> --previous --timestamps
 kubectl describe pod <pod> -n <ns>
@@ -90,7 +90,7 @@ Inspect Pod events, PV CSI handle, VolumeAttachment, prior node, CSI controller/
 
 ## Rolling update stuck
 
-```powershell
+```console
 kubectl describe deployment <name> -n <ns>
 kubectl get replicaset,pod -n <ns> -l <selector> -o wide
 kubectl rollout history deployment/<name> -n <ns>

@@ -23,29 +23,29 @@ The kubelet owns the local realization loop for Pods assigned to its node. Throu
 
 ## Lab · Correlate API and node facts
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl get nodes -o wide
 kubectl describe node
 kubectl get pods -n k8s-30d -o custom-columns=NAME:.metadata.name,NODE:.spec.nodeName,POD_IP:.status.podIP,HOST_IP:.status.hostIP,CONTAINER_ID:.status.containerStatuses[0].containerID
-kubectl get node -o jsonpath='{range .items[*]}{.metadata.name}{" runtime="}{.status.nodeInfo.containerRuntimeVersion}{" kubelet="}{.status.nodeInfo.kubeletVersion}{"`n"}{end}'
+kubectl get node -o jsonpath='{range .items[*]}{.metadata.name}{" runtime="}{.status.nodeInfo.containerRuntimeVersion}{" kubelet="}{.status.nodeInfo.kubeletVersion}{"\n"}{end}'
 kubectl get daemonset -n kube-system
 ```
 
 Use an ephemeral node debugger only on the disposable cluster:
 
-```powershell
-$node = kubectl get node -o jsonpath='{.items[0].metadata.name}'
-kubectl debug node/$node -it --image=ubuntu --profile=sysadmin
+```console
+kubectl get nodes
+kubectl debug node/<node-name> -it --image=ubuntu --profile=sysadmin
 ```
 
-Inside, host files are commonly mounted under `/host`. Depending on distribution, inspect `crictl ps`, network interfaces, mounts, and logs. Exit without changing host state.
+Replace `<node-name>` with a node from the first command. Inside, host files are commonly mounted under `/host`. Depending on distribution, inspect `crictl ps`, network interfaces, mounts, and logs. Exit without changing host state.
 
 ## Practical issue · Node NotReady
 
 Run this evidence chain:
 
-```powershell
+```console
 kubectl get node -o wide
 kubectl describe node <node-name>
 kubectl get lease -n kube-node-lease <node-name> -o yaml
@@ -76,4 +76,3 @@ Distinguish:
 2. **What is CRI?** A gRPC contract that decouples kubelet from container runtime implementations.
 3. **Who assigns the Pod IP?** The configured CNI plugin during sandbox network setup; exact IPAM and routing are implementation-specific.
 4. **What happens if kubelet stops?** Existing containers may keep running under the runtime, but probes/status/reconciliation stop; the node becomes NotReady and workloads may eventually be replaced elsewhere.
-

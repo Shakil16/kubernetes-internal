@@ -21,11 +21,11 @@ Kubernetes API objects are stored under an implementation-specific key prefix. T
 
 ## Lab · Observe versions through the API
 
-```powershell
+```console
 kubectl create configmap version-demo -n k8s-30d --from-literal=value=one
-kubectl get configmap version-demo -n k8s-30d -o jsonpath='{.metadata.resourceVersion}{"`n"}'
+kubectl get configmap version-demo -n k8s-30d -o jsonpath='{.metadata.resourceVersion}{"\n"}'
 kubectl patch configmap version-demo -n k8s-30d --type=merge -p '{"data":{"value":"two"}}'
-kubectl get configmap version-demo -n k8s-30d -o jsonpath='{.metadata.resourceVersion}{"`n"}'
+kubectl get configmap version-demo -n k8s-30d -o jsonpath='{.metadata.resourceVersion}{"\n"}'
 kubectl get configmap version-demo -n k8s-30d --watch --output-watch-events
 ```
 
@@ -33,7 +33,7 @@ In another terminal, patch the object again and observe an event. Stop the watch
 
 For kubeadm only, locate the etcd Pod and read its command before adapting snapshot commands:
 
-```powershell
+```console
 kubectl get pod -n kube-system -l component=etcd -o yaml
 ```
 
@@ -68,4 +68,3 @@ Back up the etcd snapshot **and** the encryption configuration/keys and cluster 
 3. **Why not put application data in Kubernetes API objects?** The API and etcd are optimized for control state, not high-volume application workloads.
 4. **etcd is full—what do you do?** Halt churn, confirm quota/size and alarms, take a snapshot, compact known revisions, defragment members safely one at a time, validate, and fix the producer.
 5. **Why can defragmentation be risky?** It is resource-intensive and can block a member; sequence it while maintaining quorum and monitor latency.
-

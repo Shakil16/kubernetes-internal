@@ -34,8 +34,8 @@ Pod phase (`Pending`, `Running`, `Succeeded`, `Failed`, `Unknown`) is coarse. Co
 
 ## Lab · Init, sidecar, namespaces, volume
 
-```powershell
-kubectl apply -f labs/manifests/02-pod-internals.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.podInternals.enabled=true
 kubectl get pod pod-internals -n k8s-30d -w
 kubectl describe pod pod-internals -n k8s-30d
 kubectl logs pod-internals -n k8s-30d -c initialize
@@ -47,7 +47,7 @@ kubectl exec pod-internals -n k8s-30d -c log-sidecar -- hostname -i
 
 Restart only the application process and verify `emptyDir` remains:
 
-```powershell
+```console
 kubectl exec pod-internals -n k8s-30d -c application -- sh -c 'kill 1'
 kubectl get pod pod-internals -n k8s-30d
 kubectl logs pod-internals -n k8s-30d -c application --previous

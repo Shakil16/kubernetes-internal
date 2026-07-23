@@ -1,0 +1,6 @@
+{{- if gt (int .Values.labs.scalingReliability.minReplicas) (int .Values.labs.scalingReliability.maxReplicas) -}}
+{{- fail "labs.scalingReliability.minReplicas must not exceed maxReplicas" -}}
+{{- end -}}
+{{- if and .Values.labs.crd.widget.enabled (not .Values.labs.crd.enabled) -}}
+{{- fail "labs.crd.enabled must be true before labs.crd.widget.enabled can be true" -}}
+{{- end -}}

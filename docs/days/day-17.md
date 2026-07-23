@@ -25,8 +25,8 @@ A DaemonSet schedules Pods on every eligible node or matching subset. Common use
 
 ## Lab · Identity and per-node placement
 
-```powershell
-kubectl apply -f labs/manifests/05-workloads.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.workloads.enabled=true
 kubectl get statefulset,daemonset -n k8s-30d
 kubectl get pod -n k8s-30d -l app=identity -o wide
 kubectl get pod -n k8s-30d -l app=node-agent -o wide
@@ -37,7 +37,7 @@ kubectl run dns-stateful -n k8s-30d --image=busybox:1.36.1 --restart=Never -- ns
 
 Delete `identity-1`, watch ordered identity recovery, and compare UID/node:
 
-```powershell
+```console
 kubectl get pod identity-1 -n k8s-30d -o custom-columns=UID:.metadata.uid,NODE:.spec.nodeName
 kubectl delete pod identity-1 -n k8s-30d
 kubectl get pod -n k8s-30d -l app=identity -w
@@ -46,7 +46,7 @@ kubectl exec identity-1 -n k8s-30d -- cat /state/identity
 
 The sample uses `emptyDir`, so the identity text is regenerated. In production, use `volumeClaimTemplates` for stable data and test recovery. Scale the StatefulSet and notice ordinal behavior:
 
-```powershell
+```console
 kubectl scale statefulset/identity -n k8s-30d --replicas=5
 kubectl get pod -n k8s-30d -l app=identity -w
 ```
@@ -65,4 +65,3 @@ kubectl get pod -n k8s-30d -l app=identity -w
 2. **Why a headless Service?** It exposes individual endpoint DNS identities without a virtual-IP load balancer.
 3. **When use DaemonSet?** For a per-node function such as network, storage, logging, monitoring, or security agents.
 4. **Does StatefulSet guarantee data safety?** No. Storage durability, replication, quorum, backups, and recovery belong to the application/storage design.
-

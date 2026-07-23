@@ -27,8 +27,8 @@ The kubelet writes Pod resolver configuration according to `dnsPolicy` and `dnsC
 
 ## Lab · Query and observe
 
-```powershell
-kubectl apply -f labs/manifests/01-web.yaml
+```console
+helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 kubectl run dns-client -n k8s-30d --image=registry.k8s.io/e2e-test-images/dnsutils:1.3 --restart=Never -- sleep 1d
 kubectl exec -n k8s-30d dns-client -- cat /etc/resolv.conf
 kubectl exec -n k8s-30d dns-client -- nslookup web
@@ -41,7 +41,7 @@ kubectl logs -n kube-system -l k8s-app=kube-dns --tail=100
 
 Test namespace search behavior:
 
-```powershell
+```console
 kubectl run other-client -n default --image=registry.k8s.io/e2e-test-images/dnsutils:1.3 --restart=Never -- sleep 1d
 kubectl exec -n default other-client -- nslookup web
 kubectl exec -n default other-client -- nslookup web.k8s-30d
@@ -53,11 +53,13 @@ kubectl delete pod other-client -n default
 
 If `web` fails but the FQDN works, the issue is search scope/configuration. If both fail but direct CoreDNS Service IP queries work, inspect resolver config. If CoreDNS answers cluster names but not external names, inspect the forwarder/upstream. If only a Service name fails, inspect that Service/EndpointSlice and CoreDNS API watch permissions/state.
 
-```powershell
-$dnsIp = kubectl get service kube-dns -n kube-system -o jsonpath='{.spec.clusterIP}'
-kubectl exec -n k8s-30d dns-client -- nslookup web.k8s-30d.svc.cluster.local $dnsIp
-kubectl exec -n k8s-30d dns-client -- nslookup example.com $dnsIp
+```console
+kubectl get service kube-dns -n kube-system -o custom-columns=NAME:.metadata.name,CLUSTER-IP:.spec.clusterIP
+kubectl exec -n k8s-30d dns-client -- nslookup web.k8s-30d.svc.cluster.local <coredns-cluster-ip>
+kubectl exec -n k8s-30d dns-client -- nslookup example.com <coredns-cluster-ip>
 ```
+
+Replace `<coredns-cluster-ip>` with the printed ClusterIP.
 
 ## Production issues
 
@@ -74,4 +76,3 @@ kubectl exec -n k8s-30d dns-client -- nslookup example.com $dnsIp
 2. **Why can short names fail across namespaces?** Search paths prioritize the caller's namespace; use `service.namespace` or the FQDN.
 3. **Why does `curl service` fail while Pod IP works?** Check DNS first, then Service/Endpoint mapping; direct IP success narrows away application listener/network path.
 4. **What is `ndots`?** A resolver threshold controlling whether a name is tried through search domains before as an absolute name; it can multiply queries.
-

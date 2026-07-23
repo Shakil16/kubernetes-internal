@@ -1,0 +1,12 @@
+{{- if and .Values.labs.crd.enabled .Values.labs.crd.widget.enabled }}
+apiVersion: course.example.com/v1alpha1
+kind: Widget
+metadata:
+  name: demo
+  namespace: {{ include "kubernetes-internals.namespace" . }}
+  labels:
+    {{- include "kubernetes-internals.labels" . | nindent 4 }}
+spec:
+  message: {{ .Values.labs.crd.widget.message | quote }}
+  replicas: {{ .Values.labs.crd.widget.replicas }}
+{{- end }}
