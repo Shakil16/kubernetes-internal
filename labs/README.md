@@ -53,4 +53,4 @@ helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-value
 helm uninstall k8s-30d --namespace default
 ```
 
-Read the templates and [default values](kubernetes-internals/values.yaml) before installing them. The failures module is intentionally unhealthy; that is its expected state.
+Read the templates and [default values](/labs/kubernetes-internals/values.yaml) before installing them. The failures module is intentionally unhealthy; that is its expected state.

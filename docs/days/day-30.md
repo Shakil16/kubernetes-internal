@@ -121,5 +121,5 @@ Avoid “human error” as a root cause. Ask why one action could bypass validat
 - Repair all four Day 26 failures without reading their YAML first.
 - Diagnose network failures from Pod listener outward.
 - Explain one real production incident with evidence and tradeoffs.
-- Answer at least 40 questions in the [interview bank](../reference/interview-bank.md) aloud.
+- Answer at least 40 questions in the [interview bank](/docs/reference/interview-bank.md) aloud.
 - Repeat the capstone after one week; target faster diagnosis with fewer commands.

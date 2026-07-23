@@ -39,7 +39,7 @@ Enable a lab module with an upgrade. `--reuse-values` retains modules enabled on
 helm upgrade k8s-30d labs/kubernetes-internals --namespace default --reuse-values --set labs.web.enabled=true
 ```
 
-See [Runnable labs](../labs/README.md) for the complete module list and reset commands.
+See [Runnable labs](/labs/README.md) for the complete module list and reset commands.
 
 ## 3. Optional multi-node cluster
 

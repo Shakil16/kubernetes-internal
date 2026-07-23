@@ -14,11 +14,11 @@ An intensive, hands-on curriculum for senior DevOps, SRE, and Platform Engineeri
 
 ## Start here
 
-1. Read [Lab setup](docs/setup.md).
-2. Review the [complete 30-day plan](docs/course-plan.md).
-3. Begin [Day 1: Cluster mental model](docs/days/day-01.md).
-4. Use the [command field guide](docs/reference/commands.md) during every lab.
-5. Record incidents with the template in the [production troubleshooting guide](docs/reference/troubleshooting.md).
+1. Read [Lab setup](/docs/setup.md).
+2. Review the [complete 30-day plan](/docs/course-plan.md).
+3. Begin [Day 1: Cluster mental model](/docs/days/day-01.md).
+4. Use the [command field guide](/docs/reference/commands.md) during every lab.
+5. Record incidents with the template in the [production troubleshooting guide](/docs/reference/troubleshooting.md).
 
 ## Learning loop
 
@@ -56,6 +56,19 @@ python -m http.server 8000
 ```
 
 Open `http://localhost:8000`. For GitHub Pages, publish the repository root from the default branch; `.nojekyll` is already included.
+
+### Run with Docker
+
+```console
+docker build --tag kubernetes-internals .
+docker run --detach --rm --name kubernetes-internals --publish 8000:80 kubernetes-internals
+```
+
+Open `http://localhost:8000`. Stop the container when finished:
+
+```console
+docker stop kubernetes-internals
+```
 
 ## Lab safety
 

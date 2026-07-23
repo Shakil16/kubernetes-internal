@@ -1,0 +1,10 @@
+.git
+.agents
+.codex
+.vscode
+journal
+*.key
+*.pem
+course.crt
+.DS_Store
+Thumbs.db
